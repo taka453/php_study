@@ -1,0 +1,261 @@
+//12章
+//課題
+
+//character_table
+以下の表と同じテーブル作成、レコード追加を行ってください。
+INSERT INTO character_table
+	(character_name, pref)
+VALUES
+	('ふなっしー', '千葉県'),
+  ('ひこにゃん', '滋賀県'),
+  ('まりもっこり', '北海道');
+//また作成したテーブルの全データを表示してください。
+SELECT character_table.character_id, character_table.character_name, character_table.pref
+FROM character_table
+
+//emp_table
+また作成したテーブルより、emp_idとemp_nameのみ表示してください。
+INSERT INTO emp_table
+	(emp_name,  job,  age)
+VALUES
+	('山田太郎', 'manager', 50),
+   ('伊藤静香', 'manager', 45),
+   ('鈴木三郎', 'analyst', 30),
+   ('山田太郎', 'clerk', 24);
+
+//また作成したテーブルより、emp_idとemp_nameのみ表示してください。
+SELECT 
+  emp_table.emp_id, 
+  emp_table.emp_name
+FROM 
+  emp_table
+
+13章
+//課題
+//goods_table
+//goods_tableで、priceが500以下のデータを表示してください。
+SELECT 
+  goods_table.goods_id, 
+  goods_table.goods_name,
+  goods_table.price
+FROM 
+  goods_table
+WHERE 
+  goods_table.price <= 500
+
+//character_table
+//character_tableで、 prefが「県」で終わるデータのcharacter_idとcharacter_nameを表示してください。
+SELECT 
+  character_table.character_id, 
+  character_table.character_name
+FROM 
+  character_table
+WHERE 
+  character_table.pref LIKE '%県'
+
+//emp_table
+//emp_tableでjobがclerkのemp_idとageを表示してください。
+SELECT 
+  emp_table.emp_id, 
+  emp_table.age
+FROM 
+  emp_table
+WHERE 
+  emp_table.job = 'clerk'
+
+//emp_table
+//emp_tableでjobがanalyst または ageが20以上25以下のemp_idとemp_nameを表示してください。
+SELECT 
+  emp_table.emp_id, 
+  emp_table.emp_name, 
+  emp_table.job
+FROM 
+  emp_table
+WHERE 
+  emp_table.job = 'analyst' OR emp_table.age BETWEEN 20 AND 25
+
+14章 データ変更・削除
+//emp_table
+//emp_tableで、emp_idが1のjobをCTOに変更してください。
+UPDATE emp_table
+SET job = 'CTO'
+WHERE emp_id = 5
+
+//emp_tableで、ageが40以上のレコードを削除してください。
+DELETE
+FROM
+emp_table
+WHERE age >= 40
+
+//15章
+//user_table
+//制約
+//user_id
+//PRIMARY KEY, A_I
+
+//user_name
+//NOT NULL
+
+//mail_address
+//UNIQUE, NOT NULL
+
+//status
+//NOT NULL
+
+//またレコード追加はA_Iを利用し、user_idの指定はせずINSERTを行ってください。
+
+INSERT INTO user_table
+(user_name, mail_address, status)
+VALUES
+('二郎', 'sample@example.com', 0)
+
+//18章 正規化&テーブル結合
+//課題
+// 発注に関して、customer_idとgoods_idを除く全情報を取得
+//1.発注に関して、customer_idとgoods_idを除く全情報を取得
+SELECT 
+  order_table.order_id, 
+  order_table.order_date,
+  customer_table.customer_name,
+  customer_table.address, 
+  customer_table.phone_number, 
+  order_table.payment,
+  goods_table.goods_name, 
+  goods_table.price, 
+  order_detail_table.quantity
+FROM 
+  order_table
+JOIN order_detail_table ON order_table.order_id = order_detail_table.order_id
+JOIN goods_table ON order_detail_table.goods_id = goods_table.goods_id
+JOIN customer_table ON order_table.customer_id = customer_table.customer_id
+
+//2.佐藤一郎さんの発注した商品情報を取得
+//order_table一意ではないというエラーがでてしまう、調べたが不明
+//何が基準になるか(今回は顧客情報)
+SELECT 
+  order_table.order_id,
+  order_table.order_date,
+  customer_table.customer_name,
+  goods_table.goods_name,
+  goods_table.price,
+  order_detail_table.quantity
+FROM 
+  order_table
+  JOIN order_detail_table ON order_table.order_id = order_detail_table.order_id
+  JOIN customer_table ON order_table.customer_id = customer_table.customer_id
+  JOIN goods_table ON order_detail_table.goods_id = goods_table.goods_id
+WHERE customer_table.customer_name = '佐藤一郎'
+
+//3.コーラの売上情報を取得
+// goods_id
+SELECT 
+  goods_table.goods_name, 
+  goods_table.price, 
+  order_detail_table.quantity, 
+  order_table.order_date
+FROM 
+  goods_table
+JOIN order_detail_table ON goods_table.goods_id = order_detail_table.goods_id
+JOIN order_table ON order_detail_table.order_id = order_table.order_id
+// LIKEはきいてない
+// goods_idで条件を絞る
+WHERE goods_name LIKE '%コーラ%'
+
+復習
+SELECT
+  goods_table.goods_name,
+  goods_table.goods_price,
+  order_detail_table.quantity,
+  order_table.order_date
+FROM
+  goods_table
+JOIN
+  order_detail_table
+ON
+  goods_table.goods_id = order_detail_table.goods_id
+JOIN
+  order_table
+ON
+  order_detail_table.order_id = order_table.order_id
+WHERE goods_table.goods_name LIKE '%コーラ%';
+
+//4.1回あたりの購入数が多い順に全商品の売上情報を取得
+SELECT 
+  goods_table.goods_name, 
+  goods_table.price, 
+  order_detail_table.quantity, 
+  order_table.order_date
+FROM 
+  goods_table
+LEFT JOIN order_detail_table ON goods_table.goods_id = order_detail_table.goods_id
+LEFT JOIN order_table ON order_detail_table.order_id = order_table.order_id
+ORDER BY order_detail_table.quantity  DESC
+
+復習
+
+SELECT
+  goods_table.goods_name,
+  goods_table.price,
+  order_detail_table.quantity,
+  order_table.order_date
+FROM
+  goods_table
+LEFT JOIN
+  order_detail_table
+ON 
+  goods_table.goods_id = order_detail_table.goods_id
+LEFT JOIN
+  order_table
+ON
+  order_detail_table.order_id = order_table.order_id
+ORDER BY order_detail_table.quantity DESC
+
+19章
+エラーになってしまう。
+グループ化する
+SELECT
+	 customer_table.customer_name, 
+   COUNT(order_id) AS '発注回数'
+FROM 
+	customer_table 
+JOIN 
+ 	order_table 
+ON 
+	customer_table.customer_id = order_table.customer_id
+GROUP BY
+  customer_table.customer_id
+
+エラー内容
+#1140 - In aggregated query without GROUP BY, 
+expression #1 of SELECT list contains nonaggregated column 'codecamp.customer_table.customer_name'; 
+this is incompatible with sql_mode=only_full_group_by
+
+エラーになる
+// 売上順に並びかえる
+SELECT
+	 goods_table.goods_name,
+    SUM(quantity) AS '売上数量'
+FROM
+	goods_table
+JOIN
+	order_detail_table
+ON
+	goods_table.goods_id = order_detail_table.goods_id
+GROUP BY
+  goods_table.goods_id
+  ORDER BY '売上数量' DESC
+
+
+エラーになる
+SELECT
+	customer_table.customer_name,
+  SUM(goods_table.price * order_detail_table.quantity) AS '合計金額'
+FROM
+	customer_table
+JOIN
+	order_table ON customer_table.customer_id = order_table.customer_id
+JOIN
+	order_detail_table ON order_table.order_id = order_detail_table.order_id
+JOIN
+	goods_table ON order_detail_table.goods_id = goods_table.goods_id
+GROUP BY customer_table.customer_id
