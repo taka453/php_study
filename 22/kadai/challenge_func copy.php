@@ -36,6 +36,7 @@ if ($request_method === 'POST') {
  
 }
  
+ 
 /**
 * BMIを計算
 * @param mixed $height 身長
@@ -46,10 +47,9 @@ if ($request_method === 'POST') {
 // calc_bmi関数作成
 /////////////////////
 function calc_bmi($height, $weight) {
-    $before_bmi = $weight / ($height * $height);
-    // roudで四捨五入
-    $bmi = round($before_bmi, 1);
-    return $bmi;
+  $before_bmi = $weight / ($height * $height);
+  $bmi = round($before_bmi, 3);
+  return $bmi;
 }
 /**
 * 値が正の整数又は小数か確認
@@ -60,12 +60,11 @@ function calc_bmi($height, $weight) {
 // check_float関数作成
 /////////////////////
 function check_float($float) {
-    // 整数かどうかを確認
-    if (!preg_match('/^[0-9]+(\.[0-9]*)?$/', $float)) {
-        return FALSE;
-    } else {
-        return TRUE;
-    }
+  if (!preg_match('/^[0-9]+(\.[0-9]*)?$/', $float)) {
+    return FALSE;
+  } else {
+    return TRUE;
+  }
 }
 
 /**
