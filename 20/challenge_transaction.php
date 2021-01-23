@@ -34,18 +34,17 @@ if ($link = mysqli_connect($host, $user, $passwd, $dbname)) {
        if (isset($row['point']) === TRUE) {
            $point = $row['point'];
        }
+       // 取得しているのとセット
+       mysqli_free_result($result);
    } else {
        $err_msg[] = 'SQL失敗:' . $sql;
    }
-   mysqli_free_result($result);
    // POSTの場合はポイントでの景品購入処理
    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        /*
         * ここに購入時の処理を記載してください
         * 既存のソースを変更したい場合、変更が必要な理由を講師に説明し、許可をとってください。
         */
-        // 現在の時間を代入
-        $date = date('Y-m-d H:i:s');
         // point_gift_idを代入
         $point_gift_id = (int)$_POST['point_gift_id'];
         // sql文を記入
@@ -53,37 +52,48 @@ if ($link = mysqli_connect($host, $user, $passwd, $dbname)) {
 
         if ($result = mysqli_query($link, $sql)) {
             $row = mysqli_fetch_assoc($result);
-            $point = $point - $row['point'];
+            // 結果セットのメモリ解放
+            mysqli_free_result($result);
         } else {
             $err_msg[] = 'SQL失敗';
         }
 
-        mysqli_free_result($result);
-        mysqli_autocommit($link, false);
+        // 正常処理
+        if (empty($err_msg)) {
 
-        // 配列にまとまえる
-        $data = array(
-            'customer_id' => $customer_id,
-            'point_gift_id' => $point_gift_id,
-            'created_at' => $date
-        );
+            mysqli_autocommit($link, false);
 
-        // sql文(追加)
-        $sql = 'INSERT INTO point_history_table (customer_id, point_gift_id, created_at) VALUES (\'' . implode('\',\'', $data) . '\')';
+            // 現在の時間を代入
+            $date = date('Y-m-d H:i:s');
 
-        if ($result = mysqli_query($link, $sql)) {
-            $sql = 'UPDATE point_customer_table SET point = ' . $point . 'WHERE customer_id = ' . $customer_id;
-            if (mysqli_query($link, $sql) !== TRUE) {
-                $err_msg[] = 'SQL失敗:' . $sql;
+            // 所持ポイントの減算
+            $point = $point - $row['point'];
+
+            // 配列にまとまえる
+            $data = array(
+                'customer_id' => $customer_id,
+                'point_gift_id' => $point_gift_id,
+                'created_at' => $date
+            );
+    
+            // sql文(追加)
+            $sql = 'INSERT INTO point_history_table (customer_id, point_gift_id, created_at) VALUES (\'' . implode('\',\'', $data) . '\')';
+    
+            if ($result = mysqli_query($link, $sql)) {
+                $sql = 'UPDATE point_customer_table SET point = ' . $point . ' WHERE customer_id = ' . $customer_id;
+                if (mysqli_query($link, $sql) !== TRUE) {
+                    $err_msg[] = 'SQL失敗:' . $sql;
+                }
+            } else {
+                $err_msg[] = 'SQL失敗' . $sql;
             }
-        } else {
-            $err_msg[] = 'SQL失敗' . $sql;
-        }
-
-        if (count($err_msg) === 0) {
-            mysqli_commit($link);
-        } else {
-            mysqli_rollback($link);
+    
+            if (count($err_msg) === 0) {
+                mysqli_commit($link);
+                $message = '購入完了';
+            } else {
+                mysqli_rollback($link);
+            }
         }
    }
    /**
@@ -100,10 +110,10 @@ if ($link = mysqli_connect($host, $user, $passwd, $dbname)) {
            $point_gift_list[$i]['point']      = htmlspecialchars($row['point'],      ENT_QUOTES, 'UTF-8');
            $i++;
        }
-   } else {
+       mysqli_free_result($result);
+    } else {
        $err_msg[] = 'SQL失敗:' . $sql;
    }
-   mysqli_free_result($result);
    mysqli_close($link);
 } else {
    $err_msg[] = 'error: ' . mysqli_connect_error();
@@ -134,6 +144,8 @@ if ($link = mysqli_connect($host, $user, $passwd, $dbname)) {
                    <span><?php print number_format($point_gift['point']); ?>ポイント</span>
 <?php           if ($point_gift['point'] <= $point) { ?>
                    <button type="submit" name="point_gift_id" value="<?php print $point_gift['point_gift_id']; ?>">購入する</button>
+                   <!-- inputは融通がきかない、 -->
+                   <!-- <input type="submit" name="point_gift_id" value="購入する"> -->
 <?php        }else{ ?>
                    <button type="button" disabled="disabled">購入不可</button>
 <?php        } ?>
