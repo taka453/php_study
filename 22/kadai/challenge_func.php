@@ -46,9 +46,15 @@ if ($request_method === 'POST') {
 // calc_bmi関数作成
 /////////////////////
 function calc_bmi($height, $weight) {
+    var_dump($height);
+    var_dump($weight);
+    var_dump($height * $height);
+    $height = $height / 100;
     $before_bmi = $weight / ($height * $height);
+    var_dump($before_bmi);
     // roudで四捨五入
     $bmi = round($before_bmi, 1);
+    var_dump($bmi);
     return $bmi;
 }
 /**
